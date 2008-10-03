@@ -125,7 +125,7 @@ end; { hora_valida }
 
 function comision_valida(comision : integer):boolean;
 begin
-   comision_valida:=comision > 0;
+   comision_valida:=(comision > 0) and (comision < 100);
 end; { comision_valida }
 
 function playero_valido(playero : integer):boolean;
@@ -247,7 +247,6 @@ end; { insertar_surtidor }
 procedure agregar_surtidor(var lista_surt : ptr_surtidor);
 var
    surtidor : tipo_surtidor;
-   error    : integer;
 
 begin
    clrscr();
@@ -256,19 +255,6 @@ begin
    leer_capacidad_surtidor(surtidor.capacidad);
    insertar_surtidor(lista_surt, surtidor);
 end; { agregar_surtidor }
-
-procedure leer_datos_playero(var playero : tipo_playero);
-begin
-   clrscr();
-   write('Ingrese el numero del playero: ');
-   readln(playero.numero);
-   write('Ingrese el nombre del playero: ');
-   readln(playero.nombre);
-   write('Ingrese el apellido del playero: ');
-   readln(playero.apellido);
-   write('Ingrese el porcentaje de comision del playero: ');
-   readln(playero.porc_comision);
-end; { leer_datos_playero }
 
 function buscar_playero(arb_playeros : ptr_playero;
 			numero	     : integer):ptr_playero;
@@ -287,18 +273,50 @@ begin
    playero_existente:=buscar_playero(arb_playeros, numero) <> nil;
 end; { playero_existente }
 
-procedure validar_datos_playero(    playero	 : tipo_playero;
-				    arb_playeros : ptr_playero;
-				var error	 : integer);
+procedure leer_numero_playero_a_insertar(var numero	  : integer;	  
+					     arb_playeros : ptr_playero);
+var
+   error : integer;
+   
 begin
-   error:=0;
-   if not playero_valido(playero.numero) then
-      error:=ERROR_PLAYERO
-   else if not comision_valida(playero.porc_comision) then
-      error:=ERROR_COMISION
-   else if playero_existente(arb_playeros, playero.numero) then
-      error:=ERROR_PLAYERO_YA_EXISTE;
-end; { validar_datos_playero }
+   repeat
+      error:=0;
+      write('Ingrese el numero de playero: ');
+      readln(numero);
+      if not playero_valido(numero) then
+	 error:=ERROR_PLAYERO
+      else if playero_existente(arb_playeros, numero) then
+	 error:=ERROR_PLAYERO_YA_EXISTE;
+      if error > 0 then
+	 imprimir_error(error)
+      until error = 0;
+end; { leer_numero_playero_a_insertar }
+
+procedure leer_nombre_y_apellido(var playero : tipo_playero);
+begin
+   write('Ingrese el nombre del playero: ');
+   readln(playero.nombre);
+   write('Ingrese el apellido del playero: ');
+   readln(playero.apellido);
+end; { leer_nombre_y_apellido }
+				 
+procedure leer_porc_comision(var comision : integer);
+var
+   error : integer;
+   
+begin
+   repeat
+      error:=0;
+      write('Ingrese el porcentaje de comision: ');
+      readln(comision);
+      if not comision_valida(comision) then
+      begin
+	 error:=ERROR_COMISION;
+	 imprimir_error(error);
+      end
+   until error = 0;
+end; { leer_por_comision }
+
 
 function crear_playero(playero : tipo_playero):ptr_playero;
 var
@@ -327,20 +345,15 @@ end; { insertar_playero }
 procedure agregar_playero(var arb_playeros : ptr_playero);
 var
    playero : tipo_playero;
-   error   : integer;
    nuevo   : ptr_playero;
 
 begin
-   error:=0;
-   leer_datos_playero(playero);
-   validar_datos_playero(playero, arb_playeros, error);
-   if error > 0 then
-      imprimir_error(error)
-   else
-   begin
-      nuevo:=crear_playero(playero);
-      insertar_playero(arb_playeros, nuevo);
-   end;
+   clrscr();
+   leer_numero_playero_a_insertar(playero.numero, arb_playeros);
+   leer_nombre_y_apellido(playero);
+   leer_porc_comision(playero.porc_comision);
+   nuevo:=crear_playero(playero);
+   insertar_playero(arb_playeros, nuevo);
 end; { agregar_playero }
 
 function litros_vendidos_surtidor(arb_ventas : ptr_ventas):real;
