@@ -154,59 +154,60 @@ begin
 end; { surtidor_existente }
 
 
-procedure leer_numero_surtidor(var numero	   : integer);
-				  
+procedure leer_numero_surtidor(var numero	   : integer;
+				   list_surtidores : ptr_surtidor);				  
+var
+   error : integer;
    
 begin
-   write('Ingrese el numero de surtidor: ');
-   readln(numero);
+   repeat
+      error:=0;
+      write('Ingrese el numero de surtidor: ');
+      readln(numero);
+      if not surtidor_valido(numero) then
+	 error:=ERROR_SURTIDOR
+      else if surtidor_existente(list_surtidores, numero) then
+	 error:=ERROR_SURTIDOR_YA_EXISTE;
+      if error > 0 then
+	 imprimir_error(error)
+      until error = 0;
 end; { leer_numero_surtidor }
 
-procedure leer_precio_combustible(var precio : real);
-
-begin
-   write('Ingrese el precio del combustible: ');
-   readln(precio);
-end; { leer_precio_combustible }
-
 procedure leer_capacidad_surtidor(var capacidad	: real);
+var
+   error : integer;
+   
 begin
-   write('Ingrese la capacidad del surtidor : ');
-   readln(capacidad);			       
+   repeat
+      error:=0;
+      write('Ingrese la capacidad del surtidor : ');
+      readln(capacidad);
+      if not capacidad_valida(capacidad) then
+      begin
+	 error:=ERROR_CAPACIDAD;
+	 imprimir_error(error);
+      end
+   until error = 0;
 end; { leer_capacidad_surtidor }
 
-procedure leer_nombre_combustible(var nombre : string);
+procedure leer_datos_combustible(var comb : tipo_combustible);
+var
+   error : integer;
+   
 begin
-   write('Ingrese el nombre del combustible: ');
-   readln(nombre);
+   write('Ingrese el tipo del combustible: ');
+   readln(comb.nombre);
+   repeat
+      error:=0;
+      write('Ingrese el precio del combustible: ');
+      read(comb.precio);
+      if not precio_valido(comb.precio) then
+      begin
+	 error:=ERROR_PRECIO;
+	 imprimir_error(error);
+      end
+   until error = 0;
 end; { leer_nombre_combustible }
-
-procedure validar_numero_surtidor(    numero	      : integer;
-				      list_surtidores : ptr_surtidor;
-				  var error	      : integer);
-begin
-   error:=0;
-   if not surtidor_valido(numero) then
-      error:=ERROR_SURTIDOR
-   else if surtidor_existente(list_surtidores, numero) then
-      error:=ERROR_SURTIDOR_YA_EXISTE;
-end; { validar_numero_surtidor }
-
-procedure validar_precio_combustible(	 precio	: real;
-				     var error	: integer);
-begin
-   error:=0;
-   if not precio_valido(precio) then
-      error:=ERROR_PRECIO;
-end; { validar_precio_combustible }
-
-procedure validar_capacidad_surtidor(	 capacidad : real;
-				     var error	   : integer);
-begin
-   error:=0;
-   if not capacidad_valida(capacidad) then
-      error:=ERROR_CAPACIDAD;
-end; { validar_capacidad_surtidor }
 
 function crear_surtidor(surtidor : tipo_surtidor):ptr_surtidor;
 var
@@ -250,26 +251,9 @@ var
 
 begin
    clrscr();
-   repeat
-      error:=0;
-      leer_numero_surtidor(surtidor.numero);
-      validar_numero_surtidor(surtidor.numero, lista_surt, error);
-      if error > 0 then
-	 imprimir_error(error)
-   until error = 0;
-   leer_nombre_combustible(surtidor.combustible.nombre);
-   repeat
-      leer_precio_combustible(surtidor.combustible.precio);
-      validar_precio_combustible(surtidor.combustible.precio, error);
-      if error > 0 then
-	 imprimir_error(error)
-   until error = 0;
-   repeat
-      leer_capacidad_surtidor(surtidor.capacidad);
-      validar_capacidad_surtidor(surtidor.capacidad, error);
-      if error > 0 then
-	 imprimir_error(error)
-      until error = 0;
+   leer_numero_surtidor(surtidor.numero, lista_surt);
+   leer_datos_combustible(surtidor.combustible);
+   leer_capacidad_surtidor(surtidor.capacidad);
    insertar_surtidor(lista_surt, surtidor);
 end; { agregar_surtidor }
 
