@@ -12,7 +12,7 @@ const
    ERROR_SURTIDOR			     = 2;
    ERROR_COMISION			     = 3;
    ERROR_PLAYERO			     = 4;
-   ERROR_COMBUSTIBLE			     = 5;
+   ERROR_PRECIO				     = 5;
    ERROR_SURTIDOR_YA_EXISTE		     = 6;
    ERROR_PLAYERO_YA_EXISTE		     = 7;
    ERROR_HORA				     = 8;
@@ -133,23 +133,10 @@ begin
    playero_valido:=playero > 0;
 end; { playero_valido }
 
-function combustible_valido(comb : tipo_combustible):boolean;
+function precio_valido(precio : real):boolean;
 begin
-   combustible_valido:=comb.precio > 0;
-end; { combustible_valido }
-
-procedure leer_datos_surtidor(var surtidor : tipo_surtidor);
-begin
-   clrscr();
-   write('Ingrese el numero de surtidor: ');
-   readln(surtidor.numero);
-   write('Ingrese el tipo de combustible: ');
-   readln(surtidor.combustible.nombre);
-   write('Ingrese el precio del combustible: ');
-   readln(surtidor.combustible.precio);
-   write('Ingrese la capacidad del tanque: ');
-   readln(surtidor.capacidad);
-end; { leer_datos_surtidor }
+   precio_valido:=precio > 0;
+end; { precio_valido }
 
 function buscar_surtidor(lista_surt : ptr_surtidor;
 			 numero	    : integer):ptr_surtidor;
@@ -166,20 +153,60 @@ begin
    surtidor_existente:=buscar_surtidor(lista_surt, numero) <> nil;
 end; { surtidor_existente }
 
-procedure validar_datos_surtidor(    surtidor	: tipo_surtidor;
-				     lista_surt	: ptr_surtidor;
-				 var error	: integer);
+
+procedure leer_numero_surtidor(var numero	   : integer);
+				  
+   
+begin
+   write('Ingrese el numero de surtidor: ');
+   readln(numero);
+end; { leer_numero_surtidor }
+
+procedure leer_precio_combustible(var precio : real);
+
+begin
+   write('Ingrese el precio del combustible: ');
+   readln(precio);
+end; { leer_precio_combustible }
+
+procedure leer_capacidad_surtidor(var capacidad	: real);
+begin
+   write('Ingrese la capacidad del surtidor : ');
+   readln(capacidad);			       
+end; { leer_capacidad_surtidor }
+
+procedure leer_nombre_combustible(var nombre : string);
+begin
+   write('Ingrese el nombre del combustible: ');
+   readln(nombre);
+end; { leer_nombre_combustible }
+
+procedure validar_numero_surtidor(    numero	      : integer;
+				      list_surtidores : ptr_surtidor;
+				  var error	      : integer);
 begin
    error:=0;
-   if not surtidor_valido(surtidor.numero) then
+   if not surtidor_valido(numero) then
       error:=ERROR_SURTIDOR
-   else if not combustible_valido(surtidor.combustible) then
-      error:=ERROR_COMBUSTIBLE
-   else if not capacidad_valida(surtidor.capacidad) then
-      error:=ERROR_CAPACIDAD
-   else if surtidor_existente(lista_surt, surtidor.numero) then
+   else if surtidor_existente(list_surtidores, numero) then
       error:=ERROR_SURTIDOR_YA_EXISTE;
-end; { validar_datos_surtidor }
+end; { validar_numero_surtidor }
+
+procedure validar_precio_combustible(	 precio	: real;
+				     var error	: integer);
+begin
+   error:=0;
+   if not precio_valido(precio) then
+      error:=ERROR_PRECIO;
+end; { validar_precio_combustible }
+
+procedure validar_capacidad_surtidor(	 capacidad : real;
+				     var error	   : integer);
+begin
+   error:=0;
+   if not capacidad_valida(capacidad) then
+      error:=ERROR_CAPACIDAD;
+end; { validar_capacidad_surtidor }
 
 function crear_surtidor(surtidor : tipo_surtidor):ptr_surtidor;
 var
@@ -222,12 +249,28 @@ var
    error    : integer;
 
 begin
-   leer_datos_surtidor(surtidor);
-   validar_datos_surtidor(surtidor, lista_surt, error);
-   if error > 0 then
-      imprimir_error(error)
-   else
-      insertar_surtidor(lista_surt, surtidor);
+   clrscr();
+   repeat
+      error:=0;
+      leer_numero_surtidor(surtidor.numero);
+      validar_numero_surtidor(surtidor.numero, lista_surt, error);
+      if error > 0 then
+	 imprimir_error(error)
+   until error = 0;
+   leer_nombre_combustible(surtidor.combustible.nombre);
+   repeat
+      leer_precio_combustible(surtidor.combustible.precio);
+      validar_precio_combustible(surtidor.combustible.precio, error);
+      if error > 0 then
+	 imprimir_error(error)
+   until error = 0;
+   repeat
+      leer_capacidad_surtidor(surtidor.capacidad);
+      validar_capacidad_surtidor(surtidor.capacidad, error);
+      if error > 0 then
+	 imprimir_error(error)
+      until error = 0;
+   insertar_surtidor(lista_surt, surtidor);
 end; { agregar_surtidor }
 
 procedure leer_datos_playero(var playero : tipo_playero);
