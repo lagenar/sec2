@@ -7,7 +7,7 @@ const
    N_ARC_PLAYEROS			     = 'playeros.dat';
    N_ARC_VTAS				     = 'ventas.dat';
    DIAS_MES				     = 31;
-   NUM_ERRORES				     = 16;
+   NUM_ERRORES				     = 19;
    ERROR_CAPACIDAD			     = 1;
    ERROR_SURTIDOR			     = 2;
    ERROR_COMISION			     = 3;
@@ -24,22 +24,29 @@ const
    ERROR_FACTURA_NO_EXISTE		     = 14;
    ERROR_DIA				     = 15;
    ERROR_DIA_MENOR			     = 16;
-   ERRORES : array[1..NUM_ERRORES] of string = ('La capacidad es invalida',
-						'El numero de surtidor es invalido',
-						'El porcentaje de comision es invalido',
-						'El numero de playero es invalido',
-						'El precio del combustible es invalido',
-						'El surtidor ya existe',
-						'El playero ya existe',
-						'La hora es invalida',
-						'El surtidor no existe',
-						'El playero no existe',
-						'El numero de factura es invalido',
-						'La factura ya existe',
-						'No hay suficientes litros para realizar la venta',
-						'La factura no existe',
-						'El numero de dia es invalido',
-						'El numero de dia debe ser mayor que el ultimo dia ingresado');
+   ERROR_LITROS				     = 17;
+   ERROR_NO_HAY_SURTIDORES		     = 18;
+   ERROR_NO_HAY_PLAYEROS		     = 19;
+   ERRORES : array[1..NUM_ERRORES] of string = 
+   ('La capacidad es invalida',
+    'El numero de surtidor es invalido',
+    'El porcentaje de comision es invalido',
+    'El numero de playero es invalido',
+    'El precio del combustible es invalido',
+    'El surtidor ya existe',
+    'El playero ya existe',
+    'La hora es invalida',
+    'El surtidor no existe',
+    'El playero no existe',
+    'El numero de factura es invalido',
+    'La factura ya existe',
+    'No hay suficientes litros para realizar la venta',
+    'La factura no existe',
+    'El numero de dia es invalido',
+    'El numero de dia debe ser mayor que el ultimo dia ingresado',
+    'Los litros ingresados son invalidos',
+    'No hay ningun surtidor por lo que no se puede realizar la venta',
+    'No hay ningun playero por lo que no se puede realizar la venta');
    
 type
    ptr_playero	      = ^nodo_playero;
@@ -76,8 +83,8 @@ type
 			   arb_ventas : ptr_ventas;
 			end;	      
    tipo_hora	      = record
-			   hora	  : integer;
-			   minuto : integer
+			   hora	  : 0..23;
+			   minuto : 0..59
 			end;	  
    tipo_factura	      = record
 			   numero	   : integer;
@@ -97,7 +104,6 @@ type
    
 procedure imprimir_error(error : integer);
 begin
-   clrscr();
    writeln(ERRORES[error]);
    readln();
 end; { imprimir_error }
@@ -117,10 +123,10 @@ begin
    surtidor_valido:=surtidor > 0;
 end; { surtidor_valido }
 
-function hora_valida(h : tipo_hora):boolean;
+function hora_valida(hora, minuto : integer):boolean;
 begin
-   hora_valida:=(h.hora >=0) and (h.hora < 24) and (h.minuto >= 0) and
-   (h.minuto < 60);
+   hora_valida:=(hora >=0) and (hora < 24) and (minuto >= 0) and
+   (minuto < 60);
 end; { hora_valida }
 
 function comision_valida(comision : integer):boolean;
@@ -154,60 +160,57 @@ begin
 end; { surtidor_existente }
 
 
-procedure leer_numero_surtidor(var numero	   : integer;
-				   list_surtidores : ptr_surtidor);				  
-var
-   error : integer;
-   
+procedure leer_numero_surtidor(var numero : integer);
+			        
 begin
-   repeat
-      error:=0;
       write('Ingrese el numero de surtidor: ');
-      readln(numero);
-      if not surtidor_valido(numero) then
-	 error:=ERROR_SURTIDOR
-      else if surtidor_existente(list_surtidores, numero) then
-	 error:=ERROR_SURTIDOR_YA_EXISTE;
-      if error > 0 then
-	 imprimir_error(error)
-      until error = 0;
+      readln(numero);      
 end; { leer_numero_surtidor }
 
-procedure leer_capacidad_surtidor(var capacidad	: real);
-var
-   error : integer;
-   
+procedure leer_capacidad_surtidor(var capacidad	: real);   
 begin
-   repeat
-      error:=0;
-      write('Ingrese la capacidad del surtidor : ');
-      readln(capacidad);
-      if not capacidad_valida(capacidad) then
-      begin
-	 error:=ERROR_CAPACIDAD;
-	 imprimir_error(error);
-      end
-   until error = 0;
+   write('Ingrese la capacidad del surtidor : ');
+   readln(capacidad);
 end; { leer_capacidad_surtidor }
 
-procedure leer_datos_combustible(var comb : tipo_combustible);
-var
-   error : integer;
-   
+procedure leer_tipo_combustible(var tipo : string);
 begin
-   write('Ingrese el tipo del combustible: ');
-   readln(comb.nombre);
-   repeat
-      error:=0;
-      write('Ingrese el precio del combustible: ');
-      read(comb.precio);
-      if not precio_valido(comb.precio) then
-      begin
-	 error:=ERROR_PRECIO;
-	 imprimir_error(error);
-      end
-   until error = 0;
-end; { leer_nombre_combustible }
+   write('Ingrese el tipo de combustible: ');
+   readln(tipo);   
+end; { leer_tipo_combustible }
+
+procedure leer_precio_combustible(var precio : real);
+begin
+   write('Ingrese el precio del combustible: ');
+   readln(precio);
+end; { leer_precio_combustible }
+
+procedure validar_nuevo_surtidor(    numero	      : integer;
+				      list_surtidores : ptr_surtidor;
+				    var error	      : integer);
+begin
+   error:=0;
+   if not surtidor_valido(numero) then
+      error:=ERROR_SURTIDOR
+   else if surtidor_existente(list_surtidores, numero) then
+      error:=ERROR_SURTIDOR_YA_EXISTE;
+end; { validar_nuevo_surtidor }
+
+procedure validar_capacidad_surtidor(	 capacidad : real;
+				     var error	   : integer);
+begin
+   error:=0;
+   if not capacidad_valida(capacidad) then
+      error:=ERROR_CAPACIDAD;
+end; { validar_capacidad_surtidor }
+
+procedure validar_precio_combustible(	 precio	: real;
+				     var error	: integer);
+begin
+   error:=0;
+   if not precio_valido(precio) then
+      error:=ERROR_PRECIO;
+end; { validar_precio_combustible }
 
 function crear_surtidor(surtidor : tipo_surtidor):ptr_surtidor;
 var
@@ -221,21 +224,21 @@ begin
    crear_surtidor:=nuevo;
 end; { crear_surtidor }
 
-procedure insertar_surtidor(var lista_surt : ptr_surtidor;
+procedure insertar_surtidor(var list_surtidores : ptr_surtidor;
 				surtidor   : tipo_surtidor);
 var
    nuevo, cursor : ptr_surtidor;
 begin
    nuevo:=crear_surtidor(surtidor);
-   if (lista_surt = nil) or
-      (lista_surt^.surtidor.numero > surtidor.numero) then
+   if (list_surtidores = nil) or
+      (list_surtidores^.surtidor.numero > surtidor.numero) then
    begin
-      nuevo^.sig:=lista_surt;
-      lista_surt:=nuevo;
+      nuevo^.sig:=list_surtidores;
+      list_surtidores:=nuevo;
    end
    else
    begin
-      cursor:=lista_surt;
+      cursor:=list_surtidores;
       while (cursor^.sig <> nil) and
 	 (cursor^.surtidor.numero < surtidor.numero) do
 	 cursor:=cursor^.sig;
@@ -244,16 +247,35 @@ begin
    end;
 end; { insertar_surtidor }
 
-procedure agregar_surtidor(var lista_surt : ptr_surtidor);
+procedure agregar_surtidor(var list_surtidores : ptr_surtidor);
+{}
 var
    surtidor : tipo_surtidor;
+   error    : integer;
 
 begin
    clrscr();
-   leer_numero_surtidor(surtidor.numero, lista_surt);
-   leer_datos_combustible(surtidor.combustible);
-   leer_capacidad_surtidor(surtidor.capacidad);
-   insertar_surtidor(lista_surt, surtidor);
+   error:=0;
+   repeat
+      leer_numero_surtidor(surtidor.numero);
+      validar_nuevo_surtidor(surtidor.numero, list_surtidores, error);
+      if error > 0 then
+	 imprimir_error(error);
+   until error = 0;
+   leer_tipo_combustible(surtidor.combustible.nombre);
+   repeat
+      leer_precio_combustible(surtidor.combustible.precio);
+      validar_precio_combustible(surtidor.combustible.precio, error);
+      if error > 0 then
+	 imprimir_error(error);
+   until error = 0;
+   repeat
+      leer_capacidad_surtidor(surtidor.capacidad);
+      validar_capacidad_surtidor(surtidor.capacidad, error);
+      if error > 0 then
+	 imprimir_error(error);
+   until error = 0;
+   insertar_surtidor(list_surtidores, surtidor);
 end; { agregar_surtidor }
 
 function buscar_playero(arb_playeros : ptr_playero;
@@ -273,50 +295,45 @@ begin
    playero_existente:=buscar_playero(arb_playeros, numero) <> nil;
 end; { playero_existente }
 
-procedure leer_numero_playero_a_insertar(var numero	  : integer;	  
-					     arb_playeros : ptr_playero);
-var
-   error : integer;
-   
+procedure leer_numero_playero(var numero : integer);
 begin
-   repeat
-      error:=0;
-      write('Ingrese el numero de playero: ');
-      readln(numero);
-      if not playero_valido(numero) then
-	 error:=ERROR_PLAYERO
-      else if playero_existente(arb_playeros, numero) then
-	 error:=ERROR_PLAYERO_YA_EXISTE;
-      if error > 0 then
-	 imprimir_error(error)
-      until error = 0;
-end; { leer_numero_playero_a_insertar }
+   write('Ingrese el numero de playero: ');
+   readln(numero);
+end; { leer_numero_playero }
 
-procedure leer_nombre_y_apellido(var playero : tipo_playero);
+procedure leer_nombre_playero(var nombre   : string;
+			      var apellido : string);
 begin
    write('Ingrese el nombre del playero: ');
-   readln(playero.nombre);
+   readln(nombre);
    write('Ingrese el apellido del playero: ');
-   readln(playero.apellido);
-end; { leer_nombre_y_apellido }
-				 
-procedure leer_porc_comision(var comision : integer);
-var
-   error : integer;
-   
-begin
-   repeat
-      error:=0;
-      write('Ingrese el porcentaje de comision: ');
-      readln(comision);
-      if not comision_valida(comision) then
-      begin
-	 error:=ERROR_COMISION;
-	 imprimir_error(error);
-      end
-   until error = 0;
-end; { leer_por_comision }
+   readln(apellido);
+end; { leer_nombre_playero }
 
+procedure leer_porcentaje_comision(var porc_com	: integer);
+begin
+   write('Ingrese el porcentaje de comision: ');
+   readln(porc_com);
+end; { leer_porcentaje_comision }
+
+procedure validar_nuevo_playero(    numero	 : integer;
+				    arb_playeros : ptr_playero;
+				var error	 : integer);
+begin
+   error:=0;
+   if not playero_valido(numero) then
+      error:=ERROR_PLAYERO
+   else if playero_existente(arb_playeros, numero) then
+      error:=ERROR_PLAYERO_YA_EXISTE;
+end; { validar_nuevo_payero }
+
+procedure validar_porcentaje_comision(	  porc_com : integer;
+				      var error	   : integer);
+begin
+   error:=0;
+   if not comision_valida(porc_com) then
+      error:=ERROR_COMISION;
+end; { validar_porcentaje_comision }
 
 function crear_playero(playero : tipo_playero):ptr_playero;
 var
@@ -346,12 +363,24 @@ procedure agregar_playero(var arb_playeros : ptr_playero);
 var
    playero : tipo_playero;
    nuevo   : ptr_playero;
+   error   : integer;
 
 begin
    clrscr();
-   leer_numero_playero_a_insertar(playero.numero, arb_playeros);
-   leer_nombre_y_apellido(playero);
-   leer_porc_comision(playero.porc_comision);
+   error:=0;
+   repeat
+      leer_numero_playero(playero.numero);
+      validar_nuevo_playero(playero.numero, arb_playeros, error);
+      if error > 0 then
+	 imprimir_error(error);
+   until error = 0;
+   leer_nombre_playero(playero.nombre, playero.apellido);
+   repeat
+      leer_porcentaje_comision(playero.porc_comision);
+      validar_porcentaje_comision(playero.porc_comision, error);
+      if error > 0 then
+	 imprimir_error(error);
+   until error = 0;
    nuevo:=crear_playero(playero);
    insertar_playero(arb_playeros, nuevo);
 end; { agregar_playero }
@@ -397,77 +426,6 @@ begin
    readln();
 end; { listar_surtidores }
 
-procedure leer_datos_venta(var factura	       : tipo_factura;
-			   var nsurt, nplayero : integer);
-begin
-   clrscr();
-   write('Ingrese el numero de surtidor: ');
-   readln(nsurt);
-   write('Ingrese el numero de playero: ');
-   readln(nplayero);
-   write('Ingrese la hora de la venta(hora minuto): ');
-   readln(factura.hora_venta.hora, factura.hora_venta.minuto);
-   write('Ingrese el numero de factura: ');
-   readln(factura.numero);
-   write('Ingrese los litros a vender: ');
-   readln(factura.litros_vendidos);
-end; { leer_datos_venta }
-
-procedure validar_datos_venta(	  factura	  : tipo_factura;
-				  nsurt, nplayero : integer;
-			      var error		  : integer);
-begin
-   error:=0;
-   if not surtidor_valido(nsurt) then
-      error:=ERROR_SURTIDOR
-   else if not playero_valido(nplayero) then
-      error:=ERROR_PLAYERO
-   else if not hora_valida(factura.hora_venta) then
-      error:=ERROR_HORA
-   else if not factura_valida(factura.numero) then
-      error:=ERROR_FACTURA
-   else if not capacidad_valida(factura.litros_vendidos) then
-      error:=ERROR_CAPACIDAD;
-end; { validar_datos_venta }
-
-function capacidad_suficiente(nodo_surt	: ptr_surtidor;
-			      a_vender	: real):boolean;
-begin
-   capacidad_suficiente:=(litros_restantes_surtidor(nodo_surt)-a_vender) >= 0;
-end; { capacidad_suficiente }
-
-procedure insertar_venta(var arb_ventas	: ptr_ventas;
-			     nueva	: ptr_ventas);
-begin
-   if arb_ventas = nil then 
-      arb_ventas:=nueva
-   else if nueva^.factura.litros_vendidos <=
-      arb_ventas^.factura.litros_vendidos then
-      insertar_venta(arb_ventas^.izq, nueva)
-   else
-      insertar_venta(arb_ventas^.der, nueva);
-end; { insertar_venta }
-
-function crear_nodo_venta(factura      : tipo_factura;
-			  nodo_playero : ptr_playero):ptr_ventas;
-var
-   nueva : ptr_ventas;
-   
-begin
-   new(nueva);
-   nueva^.izq:=nil;
-   nueva^.der:=nil;
-   nueva^.p_playero:=nodo_playero;
-   nueva^.factura:=factura;
-   crear_nodo_venta:=nueva;
-end; { crear_nodo_venta }
-
-function calcular_monto_venta(nodo_surt	: ptr_surtidor;
-			      litros	: real):real;
-begin
-   calcular_monto_venta:=nodo_surt^.surtidor.combustible.precio * litros;
-end; { calcular_monto_venta }
-
 function buscar_factura_surtidor(arb_ventas : ptr_ventas;
 				     num    : integer):ptr_ventas;
 var
@@ -505,68 +463,222 @@ begin
    end;
    buscar_factura:=nodo_ventas;
 end; { buscar_factura }
-			
-procedure realizar_venta(lis_surtidores	: ptr_surtidor;
-			 arb_playeros	: ptr_playero);
-var
-   nodo_playero	   : ptr_playero;
-   nodo_surt	   : ptr_surtidor;
-   nsurt, nplayero : integer;
-   factura	   : tipo_factura;
-   monto_venta	   : real;
-   error	   : integer;
-   nodo_venta	   : ptr_ventas;
 
+procedure leer_numero_factura(var factura : integer);
+begin
+   write('Ingrese el numero de factura: ');
+   readln(factura);
+end; { leer_numero_factura }
+
+procedure leer_litros_venta(var litros : real);
+begin
+   write('Ingrese los litros a vender: ');
+   readln(litros);
+end; { leer_litros_venta }
+
+procedure leer_hora(var hora   : integer;
+		    var minuto : integer);
+begin
+   write('Ingrese la hora(hora minuto): ');
+   readln(hora, minuto);
+end; { leer_hora }
+
+procedure validar_hora(	   hora, minuto	: integer;
+		       var error	: integer);
 begin
    error:=0;
-   leer_datos_venta(factura, nsurt, nplayero);
-   validar_datos_venta(factura, nsurt, nplayero, error);
-   if error > 0 then
-      imprimir_error(error)
+   if not hora_valida(hora, minuto) then
+      error:=ERROR_HORA;
+end; { validar_hora }
+
+procedure validar_numero_factura(    factura	     : integer;
+				     list_surtidores : ptr_surtidor;
+				 var error	     : integer);
+begin
+   error:=0;
+   if not factura_valida(factura) then
+      error:=ERROR_FACTURA
+   else if buscar_factura(list_surtidores, factura) <> nil then
+      error:=ERROR_FACTURA_YA_EXISTE;
+end; { validar_numero_factura }
+
+procedure validar_nodo_surtidor_venta(	  nodo_surtidor	: ptr_surtidor;
+				      var error		: integer);
+begin
+   error:=0;
+   if nodo_surtidor = nil then
+      error:=ERROR_SURTIDOR_INEXISTENTE;
+end; { validar_nodo_surtidor_venta }
+
+procedure validar_nodo_playero_venta(	 nodo_playero : ptr_playero;
+				     var error	      : integer);
+begin
+   error:=0;
+   if nodo_playero = nil then
+      error:=ERROR_PLAYERO_INEXISTENTE;
+end; { validar_nodo_playero_venta }
+
+function capacidad_suficiente(nodo_surt	: ptr_surtidor;
+			      a_vender	: real):boolean;
+begin
+   capacidad_suficiente:=(litros_restantes_surtidor(nodo_surt)-a_vender) >= 0;
+end; { capacidad_suficiente }
+
+procedure validar_litros_venta(	   litros	 : real;
+				   nodo_surtidor : ptr_surtidor;
+			       var error	 : integer);
+begin
+   error:=0;
+   if not capacidad_valida(litros) then
+      error:=ERROR_LITROS
+   else if not capacidad_suficiente(nodo_surtidor, litros) then
+      error:=ERROR_CAPACIDAD_INSUFICIENTE;
+end; { validar_litros_venta }
+
+procedure validar_numero_surtidor(    surtidor : integer;
+				  var error    : integer);
+begin
+   error:=0;
+   if not surtidor_valido(surtidor) then
+      error:=ERROR_SURTIDOR;
+end; { validar_numero_surtidor }
+
+procedure validar_numero_playero(    playero : integer;
+				 var error   : integer);
+begin
+   error:=0;
+   if not playero_valido(playero) then
+      error:=ERROR_PLAYERO;
+end; { validar_numero_playero }
+
+procedure insertar_venta(var arb_ventas	: ptr_ventas;
+			     nueva	: ptr_ventas);
+begin
+   if arb_ventas = nil then 
+      arb_ventas:=nueva
+   else if nueva^.factura.litros_vendidos <=
+      arb_ventas^.factura.litros_vendidos then
+      insertar_venta(arb_ventas^.izq, nueva)
+   else
+      insertar_venta(arb_ventas^.der, nueva);
+end; { insertar_venta }
+
+function crear_nodo_venta(factura      : tipo_factura;
+			  nodo_playero : ptr_playero):ptr_ventas;
+var
+   nueva : ptr_ventas;
+   
+begin
+   new(nueva);
+   nueva^.izq:=nil;
+   nueva^.der:=nil;
+   nueva^.p_playero:=nodo_playero;
+   nueva^.factura:=factura;
+   crear_nodo_venta:=nueva;
+end; { crear_nodo_venta }
+
+function calcular_monto_venta(nodo_surt	: ptr_surtidor;
+			      litros	: real):real;
+begin
+   calcular_monto_venta:=nodo_surt^.surtidor.combustible.precio * litros;
+end; { calcular_monto_venta }
+
+function desea_reintentar():boolean;
+var
+   c : char;
+   
+begin
+   repeat
+      write('quiere volver a intentar? s/n ');
+      readln(c);
+   until (c='n') or (c='s');
+   if c='n' then
+      desea_reintentar:=false
+   else
+      desea_reintentar:=true;
+end; { desea_reintentar }
+
+procedure realizar_venta(list_surtidores : ptr_surtidor;
+			 arb_playeros	 : ptr_playero);
+var
+   nodo_playero	       : ptr_playero;
+   nodo_surt	       : ptr_surtidor;
+   nsurtidor, nplayero : integer;
+   hora, minuto	       : integer;
+   factura	       : tipo_factura;
+   monto_venta	       : real;
+   error	       : integer;
+   nodo_venta	       : ptr_ventas;
+
+begin
+   clrscr();
+   error:=0;
+   if list_surtidores = nil then
+   begin
+      error:=ERROR_NO_HAY_SURTIDORES;
+      imprimir_error(error);
+   end
+   else if arb_playeros = nil then
+   begin
+      error:=ERROR_NO_HAY_PLAYEROS;
+      imprimir_error(error);
+   end
    else
    begin
-      nodo_playero:=buscar_playero(arb_playeros, nplayero);
-      if nodo_playero = nil then
-	 begin
-	    error:=ERROR_PLAYERO_INEXISTENTE;
-	    imprimir_error(error);
-	 end
-	 else
-	 begin
-	    nodo_surt:=buscar_surtidor(lis_surtidores, nsurt);
-	    if nodo_surt = nil then
-	    begin
-	       error:=ERROR_SURTIDOR_INEXISTENTE;
-	       imprimir_error(error);
-	    end
-	    else
-	    begin
-	       if buscar_factura(lis_surtidores, factura.numero) <> nil then
-	       begin
-		  error:=ERROR_FACTURA_YA_EXISTE;
-		  imprimir_error(error);
-	       end
-	       else
-	       begin
-		  if not capacidad_suficiente(nodo_surt, factura.litros_vendidos) then
-		  begin
-		     error:=ERROR_CAPACIDAD_INSUFICIENTE;
-		     imprimir_error(error);
-		  end
-		  else
-		  begin
-		     nodo_venta:=crear_nodo_venta(factura, nodo_playero);
-		     insertar_venta(nodo_surt^.arb_ventas, nodo_venta);
-		     monto_venta:=calcular_monto_venta(nodo_surt,
-						       factura.litros_vendidos);
-		     clrscr();
-		     writeln('La venta se ha realizado con exito');
-		     writeln('El monto es de: ', monto_venta:0:2);
-		     readln();
-		  end;
-	       end;
-	    end;
+      repeat
+	 leer_numero_surtidor(nsurtidor);
+	 validar_numero_surtidor(nsurtidor, error);
+	 if error = 0 then begin
+	    nodo_surt:=buscar_surtidor(list_surtidores, nsurtidor);
+	    validar_nodo_surtidor_venta(nodo_surt, error);
 	 end;
+	 if error > 0 then
+	    imprimir_error(error);
+      until (error = 0) or not (desea_reintentar());
+      if error = 0 then
+	 repeat
+	    leer_numero_playero(nplayero);
+	    validar_numero_playero(nplayero, error);
+	    if error = 0 then begin
+	       nodo_playero:=buscar_playero(arb_playeros, nplayero);
+	       validar_nodo_playero_venta(nodo_playero, error);
+	    end;
+	    if error > 0 then
+	       imprimir_error(error);
+	 until (error = 0) or not (desea_reintentar());
+				   
+      if error = 0 then
+	 repeat
+	    leer_numero_factura(factura.numero);
+	    validar_numero_factura(factura.numero, nodo_surt, error);
+	    if error > 0 then
+	       imprimir_error(error);
+	 until (error = 0) or not (desea_reintentar());
+      if error = 0 then
+	 repeat
+	    leer_litros_venta(factura.litros_vendidos);
+	    validar_litros_venta(factura.litros_vendidos, nodo_surt, error);
+	    if error > 0 then
+	       imprimir_error(error);
+	 until (error = 0) or not (desea_reintentar());
+      if error = 0 then
+	 repeat
+	    leer_hora(hora, minuto);
+	    validar_hora(hora, minuto, error);
+	    if error > 0 then
+	       imprimir_error(error)
+	    else begin
+	       factura.hora_venta.hora:=hora;
+	       factura.hora_venta.minuto:=minuto;
+	    end;
+	 until (error = 0) or not (desea_reintentar());
+      if error = 0 then {todo valido podemos realizar la venta}
+      begin
+	 nodo_venta:=crear_nodo_venta(factura, nodo_playero);
+	 insertar_venta(nodo_surt^.arb_ventas, nodo_venta);
+	 monto_venta:=calcular_monto_venta(nodo_surt, factura.litros_vendidos);
+	 writeln('El monto de la venta es: ', monto_venta:0:2);
+      end;
    end;
 end; { realizar_venta }
 
@@ -1153,7 +1265,9 @@ begin
    abrir_archivos(arc_surtidores, arc_playeros, arc_vtas_acum); 
    cargar_estructuras(arb_playeros, lista_surtidores, arc_playeros, arc_surtidores);
    
-   ultimo_dia:=ultimo_dia_vtas_acum(arc_vtas_acum);
+   ultimo_dia:=ultimo_dia_vtas_acum(arc_vtas_acum); {ultimo dia en el que se realizo una venta
+						    se asume que los dias son ingresados en orden
+						    cronologico}
    if ultimo_dia = DIAS_MES then {si se llego al ultimo dia del mes, comienza de nuevo}
    begin
       rewrite(arc_vtas_acum);
