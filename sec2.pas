@@ -777,21 +777,13 @@ begin
       error:=ERROR_FACTURA_NO_EXISTE
 end; { eliminar_factura }
 
-procedure leer_datos_cancelar_factura(var nfact	: integer);
-begin
-   clrscr();
-   write('Ingrese el numero de factura a eliminar: ');
-   readln(nfact);
-end; { leer_datos_cancelar_factura }
-
-procedure validar_datos_cancelar_factura(    nfact : integer;
-					 var error : integer);
+procedure validar_numero_factura_cancelar(    nfact : integer;
+					  var error : integer);
 begin
    error:=0;
    if not factura_valida(nfact) then
       error:=ERROR_FACTURA;
-end; { validar_datos_cancelar_factura }
-
+end; { validar_numero_factura_cancelar }
 
 procedure cancelar_factura(list_surtidores : ptr_surtidor);
 var
@@ -799,8 +791,9 @@ var
 
 begin
    error:=0;
-   leer_datos_cancelar_factura(numero_factura);
-   validar_datos_cancelar_factura(numero_factura, error);
+   clrscr();
+   leer_numero_factura(numero_factura);
+   validar_numero_factura_cancelar(numero_factura, error);
    if error > 0 then
       imprimir_error(error)
    else
@@ -1085,14 +1078,66 @@ begin
    end;
 end; { guardar_playeros }
 
+procedure insertar_surtidor_por_capacidad(    surtidor	      : tipo_surtidor;
+					  var list_surtidores : ptr_surtidor);
+var
+   cursor, nodo_surt : ptr_surtidor;
+   
+begin
+   nodo_surt:=crear_surtidor(surtidor);
+   if (list_surtidores = nil) or (nodo_surt^.surtidor.capacidad < list_surtidores^.surtidor.capacidad) then
+   begin
+      nodo_surt^.sig:=list_surtidores;
+      list_surtidores:=nodo_surt;
+   end
+   else
+   begin
+      cursor:=list_surtidores^.sig;
+      while (cursor^.sig <> nil) and (nodo_surt^.surtidor.capacidad > cursor^.sig^.surtidor.capacidad) do
+	 cursor:=cursor^.sig;
+      nodo_surt^.sig:=cursor^.sig;
+      cursor^.sig:=nodo_surt;
+   end;
+end; { insertar_surtidor_por_capacidad }
+
+procedure crear_lista_surt_por_capacidad(    list_origen  : ptr_surtidor;
+					 var list_destino : ptr_surtidor);
+begin
+   list_destino:=nil;
+   while (list_origen <> nil) do
+   begin
+      insertar_surtidor_por_capacidad(list_origen^.surtidor, list_destino);
+      list_origen:=list_origen^.sig;
+   end;
+end; { crear_lista_surt_por_capacidad }
+
+procedure eliminar_lista_surtidores(var list_surtidores	: ptr_surtidor);
+var
+   cursor : ptr_surtidor;
+   
+begin 
+   while list_surtidores <> nil do
+   begin
+      cursor:=list_surtidores;
+      list_surtidores:=list_surtidores^.sig;
+      dispose(cursor);
+   end;
+end; { eliminar_lista_surtidores }
+
 procedure guardar_surtidores(var arch : file of tipo_surtidor;
 				 lis  : ptr_surtidor);
+var
+   list_surt_capacidad : ptr_surtidor;
+   
 begin
+   list_surt_capacidad:=nil;
+   crear_lista_surt_por_capacidad(lis, list_surt_capacidad);
    if lis <> nil then
    begin
       write(arch, lis^.surtidor);
       guardar_surtidores(arch, lis^.sig);
    end;
+   eliminar_lista_surtidores(list_surt_capacidad);
 end; { guardar_surtidores }
 
 procedure guardar_datos(var arch_p	   : file of tipo_playero;
