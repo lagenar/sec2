@@ -677,7 +677,8 @@ begin
 	 nodo_venta:=crear_nodo_venta(factura, nodo_playero);
 	 insertar_venta(nodo_surt^.arb_ventas, nodo_venta);
 	 monto_venta:=calcular_monto_venta(nodo_surt, factura.litros_vendidos);
-	 writeln('El monto de la venta es: ', monto_venta:0:2);
+	 write('El monto de la venta es: ', monto_venta:0:2);
+	 readln();
       end;
    end;
 end; { realizar_venta }
@@ -1176,6 +1177,13 @@ begin
       error:=ERROR_DIA_MENOR;
 end; { validar_datos_dia }
 
+procedure salir(    lis_surtidores : ptr_surtidor;
+		var vtas_acum	   : tipo_vtas_acum);
+begin
+   calcular_vtas_acumuladas(lis_surtidores, vtas_acum);
+   mostrar_ventas_dia(vtas_acum);
+end; { salir }
+
 procedure menu(var lis_surtidores : ptr_surtidor;
 	       var arb_playeros	  : ptr_playero;
 	       var vtas_acum	  : tipo_vtas_acum);
@@ -1212,10 +1220,7 @@ begin
       else if opcion = '7' then
 	 listar_playeros_comision(lis_surtidores, arb_playeros)
       else if opcion = '8' then
-      begin
-	 calcular_vtas_acumuladas(lis_surtidores, vtas_acum);
-	 mostrar_ventas_dia(vtas_acum);
-      end
+	 salir(lis_surtidores, vtas_acum)
       else
       begin
 	 writeln('Opcion invalida');
