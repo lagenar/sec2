@@ -1085,15 +1085,17 @@ var
    
 begin
    nodo_surt:=crear_surtidor(surtidor);
-   if (list_surtidores = nil) or (nodo_surt^.surtidor.capacidad < list_surtidores^.surtidor.capacidad) then
+   if (list_surtidores = nil) or
+      (nodo_surt^.surtidor.capacidad < list_surtidores^.surtidor.capacidad) then
    begin
       nodo_surt^.sig:=list_surtidores;
       list_surtidores:=nodo_surt;
    end
    else
    begin
-      cursor:=list_surtidores^.sig;
-      while (cursor^.sig <> nil) and (nodo_surt^.surtidor.capacidad > cursor^.sig^.surtidor.capacidad) do
+      cursor:=list_surtidores;
+      while (cursor^.sig <> nil) and
+	 (nodo_surt^.surtidor.capacidad > cursor^.surtidor.capacidad) do
 	 cursor:=cursor^.sig;
       nodo_surt^.sig:=cursor^.sig;
       cursor^.sig:=nodo_surt;
@@ -1127,15 +1129,16 @@ end; { eliminar_lista_surtidores }
 procedure guardar_surtidores(var arch : file of tipo_surtidor;
 				 lis  : ptr_surtidor);
 var
-   list_surt_capacidad : ptr_surtidor;
+   list_surt_capacidad, cursor : ptr_surtidor;
    
 begin
    list_surt_capacidad:=nil;
    crear_lista_surt_por_capacidad(lis, list_surt_capacidad);
-   if lis <> nil then
+   cursor:=list_surt_capacidad;
+   while cursor <> nil do
    begin
-      write(arch, lis^.surtidor);
-      guardar_surtidores(arch, lis^.sig);
+      write(arch, cursor^.surtidor);
+      cursor:=cursor^.sig;
    end;
    eliminar_lista_surtidores(list_surt_capacidad);
 end; { guardar_surtidores }
