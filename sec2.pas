@@ -83,8 +83,8 @@ type
 			   arb_ventas : ptr_ventas;
 			end;	      
    tipo_hora	      = record
-			   hora	  : 0..23;
-			   minuto : 0..59
+			   hora	  : integer;
+			   minuto : integer
 			end;	  
    tipo_factura	      = record
 			   numero	   : integer;
@@ -583,7 +583,7 @@ begin
    calcular_monto_venta:=nodo_surt^.surtidor.combustible.precio * litros;
 end; { calcular_monto_venta }
 
-function desea_reintentar():boolean;
+function desea_reintentar:boolean;
 var
    c : char;
    
