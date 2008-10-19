@@ -758,7 +758,7 @@ begin
 end; { eliminar_factura_surtidor }
 
 procedure eliminar_factura(    list_surt : ptr_surtidor;
-			   nfactura	 : integer;
+			       nfactura	 : integer;
 			   var error	 : integer);
 var
    cursor     : ptr_surtidor;
@@ -852,20 +852,13 @@ begin
    comision_playero:=comision;
 end; { comision_playero }
 
-procedure leer_datos_calc_comision_playero(var nplayero : integer);
-begin
-   clrscr();
-   write('Ingrese el numero de playero: ');
-   readln(nplayero);
-end; { leer_datos_calc_comision_playero }
-
-procedure validar_datos_calc_comision_playero(	  nplayero : integer;
+procedure validar_numero_calc_comision_playero(	  nplayero : integer;
 					      var error	   : integer);
 begin
    error:=0;
    if not playero_valido(nplayero) then
       error:=ERROR_PLAYERO;
-end; { validar_datos_cal_comision_playero }
+end; { validar_numero_cal_comision_playero }
 
 procedure calcular_comision_playero(list_surtidores : ptr_surtidor;
 				    arb_playeros    : ptr_playero);
@@ -876,8 +869,8 @@ var
 
 begin
    error:=0;
-   leer_datos_calc_comision_playero(nplayero);
-   validar_datos_calc_comision_playero(nplayero, error);
+   leer_numero_playero(nplayero);
+   validar_numero_calc_comision_playero(nplayero, error);
    if error > 0 then
       imprimir_error(error)
    else
@@ -1050,13 +1043,13 @@ begin
    end;
 end; { cargar_lista_surtidores }
 
-procedure cargar_estructuras(var arb_playeros	: ptr_playero;
-			     var lis_surtidores	: ptr_surtidor;
-			     var arch_p		: file of tipo_playero;
-			     var arch_s		: file of tipo_surtidor);
+procedure cargar_estructuras(var arb_playeros	 : ptr_playero;
+			     var list_surtidores : ptr_surtidor;
+			     var arch_p		 : file of tipo_playero;
+			     var arch_s		 : file of tipo_surtidor);
 begin
    cargar_arbol_playeros(arch_p, arb_playeros);
-   cargar_lista_surtidores(arch_s, lis_surtidores);
+   cargar_lista_surtidores(arch_s, list_surtidores);
 end; { cargar_estructuras }
 
 
