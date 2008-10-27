@@ -923,7 +923,7 @@ begin
       if error = 0 then
 	 repeat
 	    leer_numero_factura(factura.numero);
-	    validar_numero_factura(factura.numero, nodo_surt, error);
+	    validar_numero_factura(factura.numero, list_surtidores, error);
 	    if error > 0 then
 	       imprimir_error(error);
 	 until (error = 0) or not (desea_reintentar());
