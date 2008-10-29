@@ -555,7 +555,7 @@ end; { litros_vendidos_surtidor }
 function litros_restantes_surtidor(nodo_surt : ptr_surtidor):real;
 {
 @nodo_surt: Nodo del surtidor.
-Retorna los litros vendidos del surtidor.
+Retorna los litros restantes del surtidor.
 }
 begin
    litros_restantes_surtidor:=nodo_surt^.surtidor.capacidad -
@@ -1134,13 +1134,13 @@ begin
 					   / 100.0);
 end; { calcular_comision }
 
-function comision_playero_surtidor(arb_ventas : ptr_ventas; {FIXME: basta con el surtidor}
+function comision_playero_surtidor(arb_ventas : ptr_ventas; 
 				   playero    : ptr_playero;
 				   surtidor   : ptr_surtidor):real;
 {
-@arb_ventas: Arbol de ventas de un surtidor.
+@arb_ventas: Arbol de ventas del surtidor.
 @playero: nodo del playero.
-@surtidor: nodo del surtidor del arbol de ventas.
+@surtidor: nodo del surtidor.
 Retorna la comision de un playero en un surtidor.
 La comision en un surtidor es la suma de las comisiones
 de cada una de las ventas en el arbol.
@@ -1203,7 +1203,7 @@ var
 begin
    error:=0;
    leer_numero_playero(nplayero);
-   validar_numero_playero(nplayero, error); {FIXME: cambiar el diagrama}
+   validar_numero_playero(nplayero, error); 
    if error > 0 then
       imprimir_error(error)
    else
