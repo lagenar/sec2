@@ -20,7 +20,7 @@ parametro = r"""\textbf{%(nombre)s}\newline
 """
 
 def escape(str):
-    return str.replace('_', r'\_')
+    return str.replace('_', r'\_').rstrip()
 
 def make_doc(services):
     servs = ''

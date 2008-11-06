@@ -109,8 +109,8 @@ SERV = [
     
                 
                 
-funcion = re.compile('(function|procedure) (.*)\([^{]*{\n([^}]*})')
-parametros = re.compile('^@(.*)\n', re.MULTILINE)
+funcion = re.compile('(function|procedure) (.*)\([^{]*{\r\n([^}]*})')
+parametros = re.compile('^@(.*)\r\n', re.MULTILINE)
 descripcion = re.compile('^([^@][^}]*)}', re.MULTILINE)
 
 def parse_file(filename='sec2.pas'):
