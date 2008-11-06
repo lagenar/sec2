@@ -101,26 +101,27 @@ type
 			   sig	    : ptr_lista_playero;
 			   comision : real
 			end;	    
-   
-procedure imprimir_error(error : integer);
-{ 
-@error: Indice del arreglo.
-Imprime el error indicado en la pantalla.
-}
-begin
-   writeln(ERRORES[error]);
-   readln();
-end; { imprimir_error }
+
 
 function capacidad_valida(capacidad : real):boolean;
 {
 @capacidad: Capacidad a validar.
-Verfica la validez de la capacidad.
+Verifica la validez de la capacidad.
 }
 begin
    capacidad_valida:=capacidad > 0;
 end; { capacidad_valida }
 
+procedure imprimir_error(error : integer);
+{
+@error: Indice del arreglo de errores.
+Imprime el error indicado en la pantalla.
+}
+begin
+   writeln(ERRORES[error]);
+   readln();
+end;
+			 
 function factura_valida(factura	: integer):boolean;
 {
 @factura: Numero de factura.
@@ -844,7 +845,7 @@ begin
    calcular_monto_venta:=nodo_surt^.surtidor.combustible.precio * litros;
 end; { calcular_monto_venta }
 
-function desea_reintentar:boolean;
+function desea_reintentar():boolean;
 {
 funcion generica que pregunta al usuario si quiere reintentar
 la ultima operacion.
